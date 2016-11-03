@@ -5,6 +5,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "SSWDirectionalPanGestureRecognizer.h"
 
 
 /**
@@ -14,8 +15,10 @@
 
 /// Gesture recognizer used to recognize swiping to the right.
 @property (weak, readonly, nonatomic) UIPanGestureRecognizer *panRecognizer;
+    // @property (nonatomic) SSWPanDirection direction;
 
 /// Designated initializer if the class isn't used from the Interface Builder.
 - (instancetype)initWithNavigationController:(UINavigationController *)navigationController;
 
+- (void)setDirection:(SSWPanDirection) direction;
 @end

@@ -15,6 +15,7 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+
     [super touchesMoved:touches withEvent:event];
 
     if (self.state == UIGestureRecognizerStateFailed) return;
@@ -36,8 +37,10 @@
             self.state = UIGestureRecognizerStateFailed;
         }
 
+        NSLog(@"velocities %f %f", velocity.x, velocity.y);
+
         self.dragging = YES;
-    }
+ }
 }
 
 - (void)reset

@@ -5,6 +5,7 @@
 //
 
 #import "SSWAnimator.h"
+#import "SSWDirectionalPanGestureRecognizer.h"
 
 UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 
@@ -28,6 +29,25 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     [self.layer addAnimation:animation forKey:nil];
     self.layer.shadowOpacity = toValue;
 }
+
+- (void)addRightSideShadowWithFading
+{
+    CGFloat shadowWidth = 4.0f;
+    CGFloat shadowVerticalPadding = -20.0f; // negative padding, so the shadow isn't rounded near the top and the bottom
+    CGFloat shadowHeight = CGRectGetHeight(self.frame) - 2 * shadowVerticalPadding;
+    CGRect shadowRect = CGRectMake(shadowWidth, shadowVerticalPadding, shadowWidth, shadowHeight);
+    UIBezierPath *shadowPath = [UIBezierPath bezierPathWithRect:shadowRect];
+    self.layer.shadowPath = [shadowPath CGPath];
+    self.layer.shadowOpacity = 0.2f;
+
+        // fade shadow during transition
+    CGFloat toValue = 0.0f;
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"shadowOpacity"];
+    animation.fromValue = @(self.layer.shadowOpacity);
+    animation.toValue = @(toValue);
+    [self.layer addAnimation:animation forKey:nil];
+    self.layer.shadowOpacity = toValue;
+}
 @end
 
 
@@ -36,6 +56,11 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 @end
 
 @implementation SSWAnimator
+
+- (id) initWithName: (SSWPanDirection) direction
+{
+    self.direction = direction;
+}
 
 - (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
 {
@@ -51,13 +76,17 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
 
     // parallax effect; the offset matches the one used in the pop animation in iOS 7.1
-    CGFloat toViewControllerXTranslation = - CGRectGetWidth([transitionContext containerView].bounds) * 0.3f;
-    toViewController.view.bounds = [transitionContext containerView].bounds;
-    toViewController.view.center = [transitionContext containerView].center;
-    toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
+
+    if (self.direction == SSWPanDirectionRight) {
+        CGFloat toViewControllerXTranslation = - CGRectGetWidth([transitionContext containerView].bounds) * 0.3f;
+        toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
+    } else if (self.direction == SSWPanDirectionLeft) {
+        CGFloat toViewControllerXTranslation = CGRectGetWidth([transitionContext containerView].bounds) * 0.3f;
+        toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
+    }
 
     // add a shadow on the left side of the frontmost view controller
-    [fromViewController.view addLeftSideShadowWithFading];
+    [fromViewController.view addRightSideShadowWithFading];
     BOOL previousClipsToBounds = fromViewController.view.clipsToBounds;
     fromViewController.view.clipsToBounds = NO;
 
@@ -91,7 +120,12 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 
     [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionTransitionNone | curveOption animations:^{
         toViewController.view.transform = CGAffineTransformIdentity;
-        fromViewController.view.transform = CGAffineTransformMakeTranslation(toViewController.view.frame.size.width, 0);
+
+        if (self.direction == SSWPanDirectionRight) {
+            fromViewController.view.transform = CGAffineTransformMakeTranslation(toViewController.view.frame.size.width, 0);
+        } else if (self.direction == SSWPanDirectionLeft) {
+            fromViewController.view.transform = CGAffineTransformMakeTranslation(-toViewController.view.frame.size.width, 0);
+        }
         dimmingView.alpha = 0.0f;
 
     } completion:^(BOOL finished) {

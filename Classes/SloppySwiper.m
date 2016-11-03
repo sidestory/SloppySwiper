@@ -40,6 +40,12 @@
     return self;
 }
 
+- (void)setDirection:(SSWPanDirection) direction
+{
+    ((SSWDirectionalPanGestureRecognizer *) _panRecognizer).direction = direction;
+    _animator.direction = direction;
+}
+
 - (void)awakeFromNib
 {
     [self commonInit];
@@ -61,6 +67,7 @@
 
 - (void)pan:(UIPanGestureRecognizer*)recognizer
 {
+    SSWPanDirection direction = ((SSWDirectionalPanGestureRecognizer*)_panRecognizer).direction;
     UIView *view = self.navigationController.view;
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         if (self.navigationController.viewControllers.count > 1 && !self.duringAnimation) {
@@ -72,10 +79,22 @@
     } else if (recognizer.state == UIGestureRecognizerStateChanged) {
         CGPoint translation = [recognizer translationInView:view];
         // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
-        CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
-        [self.interactionController updateInteractiveTransition:d];
-    } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
-        if ([recognizer velocityInView:view].x > 0) {
+        if (direction == SSWPanDirectionLeft) {
+            CGFloat d = -translation.x > 0 ? -translation.x / CGRectGetWidth(view.bounds) : 0;
+            [self.interactionController updateInteractiveTransition:d];
+        } else if (direction == SSWPanDirectionRight) {
+            CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
+            [self.interactionController updateInteractiveTransition:d];
+        }
+    } else if (recognizer.state == UIGestureRecognizerStateEnded) {
+        BOOL shouldFinish = NO;
+        if (direction == SSWPanDirectionLeft) {
+            shouldFinish = [recognizer velocityInView:view].x < 0;
+        } else {
+            shouldFinish = [recognizer velocityInView:view].x > 0;
+        }
+
+        if (shouldFinish) {
             [self.interactionController finishInteractiveTransition];
         } else {
             [self.interactionController cancelInteractiveTransition];
