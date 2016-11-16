@@ -81,7 +81,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         CGFloat toViewControllerXTranslation = - CGRectGetWidth([transitionContext containerView].bounds) * 0.3f;
         toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
     } else if (self.direction == SSWPanDirectionLeft) {
-        CGFloat toViewControllerXTranslation = CGRectGetWidth([transitionContext containerView].bounds) * 0.3f;
+        CGFloat toViewControllerXTranslation = CGRectGetWidth([transitionContext containerView].bounds);
         toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
     }
 
@@ -106,11 +106,11 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     BOOL isToViewControllerFirstInNavController = [navController.viewControllers firstObject] == toViewController;
     if (tabBar && (tabBarControllerContainsToViewController || (isToViewControllerFirstInNavController && tabBarControllerContainsNavController))) {
         [tabBar.layer removeAllAnimations];
-        
+
         CGRect tabBarRect = tabBar.frame;
         tabBarRect.origin.x = toViewController.view.bounds.origin.x;
         tabBar.frame = tabBarRect;
-        
+
         [toViewController.view addSubview:tabBar];
         shouldAddTabBarBackToTabBarController = YES;
     }
@@ -131,7 +131,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     } completion:^(BOOL finished) {
         if (shouldAddTabBarBackToTabBarController) {
             [tabBarController.view addSubview:tabBar];
-            
+
             CGRect tabBarRect = tabBar.frame;
             tabBarRect.origin.x = tabBarController.view.bounds.origin.x;
             tabBar.frame = tabBarRect;
